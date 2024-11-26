@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+       
+    <title>OralHealthCheck</title>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eaf7f0; /* Light green background */
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px; /* Increased width for dashboard layout */
+            margin: auto;
+            background-color: #ffffff; /* White container background */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two-column grid layout */
+            gap: 20px; /* Gap between grid items */
+        }
+
+        h2 {
+            color: #48c6ef; /* Dark green heading */
+            text-align: center;
+            margin-bottom: 20px;
+            grid-column: span 2; /* Spanning full width of grid */
+        }
+
+        .upload-form {
+            background-color: #f0f9f0; /* Light green background for forms */
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #4caf50; /* Green border */
+            transition: transform 0.3s;
+        }
+
+        .upload-form:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-title {
+            color: #6f86d6; /* Green form title */
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .form-input {
+            margin-bottom: 10px;
+            padding: 10px;
+            width: calc(100% - 20px); /* Adjusting for padding */
+            border: 1px solid #ccc; /* Light gray border */
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-button {
+            background-color: #6f86d6; /* Green button background */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: background-color 0.2s ease;
+            width: 100%; /* Full width button */
+        }
+
+        .form-button:hover {
+            background-color: rgb(0, 235, 252);  
+            color: black;
+        }       
+
+        .output-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header {
+            background: linear-gradient(135deg, #48c6ef, #6f86d6);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            font-weight: 300;
+            margin-top: 10px;
+        }
+
+        ul {
+            color: #032097;
+            padding-left: 20px;
+        }
+
+        button {
+            background-color: #6f86d6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: rgb(0, 235, 252);
+            color: black;
+        }
+
+
+
+        /* new */
+    .info {
+        margin-top: 40px;
+        padding: 20px;
+        background-color: #ffffff; /* White background for info section */
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .info h2 {
+        font-size: 2.5em;
+        color: #48c6ef;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .benefits-container {
+        display: flex;
+    }
+
+    .benefit-card {
+        background-color: #f0f9f0; /* Light green background for cards */
+        padding: 20px;
+        margin:10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .icon {
+        font-size: 3em; /* Adjust icon size */
+        margin-bottom: 10px;
+    }
+
+    .benefit-card h3 {
+        color: #6f86d6;
+        margin: 10px 0;
+    }
+
+
+    </style>
+</head>
+<body> 
+    <header>
+        <h1>Know Your Oral Hygiene</h1>
+        <p>Your journey to a healthier smile begins here</p>
+    </header>
+
+    <div class="container">
+        <div class="upload-form">
+            <h3 class="form-title">Caries Detection</h3>
+            <p>Identify and assess the presence of cavities in your teeth.</p>
+            <form action="/predict_img" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" class="form-input">
+                <input type="submit" value="Upload" class="form-button">
+            </form>
+        </div>
+        
+        <div class="upload-form">
+            <h3 class="form-title">Plaque Segmentation</h3>
+            <p>Analyze the level of plaque buildup on your teeth.</p>
+            <form action="/segment_plaque" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" class="form-input">
+                <input type="submit" value="Upload" class="form-button">
+            </form>
+        </div>
+
+        {% if image_data1 %}
+        <div class="upload-form">
+            <h3 class="form-title">Processed Image</h3>
+            <img src="data:image/jpeg;base64, {{ image_data1 }}" class="output-img" alt="Detected Caries">
+        </div>
+        {% endif %}
+
+        {% if image_data %}
+        <div class="upload-form">
+            <h3 class="form-title">Segmented Image:</h3>
+            <img src="{{ image_data }}" class="output-img" alt="Segmented Plaque">
+            <h3>Plaque Severity Levels:</h3>
+            <p>Mild Plaque: {{ mild|round(1) }}%</p>
+            <p>Moderate Plaque: {{ moderate|round(1) }}%</p>
+            <p>Severe Plaque: {{ severe|round(1) }}%</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="info">
+        <div class="info">
+            <h2>How Our Tool Can Improve Your Oral Health</h2>
+            <div class="benefits-container">
+                <div class="benefit-card">
+                    <div class="icon">🦷</div>
+                    <h3>Assess Anytime</h3>
+                    <p>Assess your oral health anytime, anywhere, without needing frequent dental visits.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">🔍</div>
+                    <h3>Early Detection</h3>
+                    <p>Identify dental issues early to prevent serious problems and costly treatments.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">📈</div>
+                    <h3>Track Progress</h3>
+                    <p>Track your oral health progress and evaluate the effectiveness of your hygiene practices over time.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">💰</div>
+                    <h3>Save Costs</h3>
+                    <p>Save on dental costs by catching issues early and reducing the need for frequent visits.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="icon">📚</div>
+                    <h3>Make Informed Choices</h3>
+                    <p>Make better choices about your oral care based on reliable, easy-to-understand information.</p>
+                </div>
+            </div>
+        </div>
+        
+    
+        <h2>Find Dentists and Hospitals Near Me</h2>
+        <button onclick="findClinics()">Dentists and Hospitals Near Me</button>
+        <div id="map"></div>
+    
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            // Initialize the map
+            const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Function to find clinics and hospitals
+            function findClinics() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        map.setView([lat, lon], 14);
+
+                        // Mark user's current location
+                        L.marker([lat, lon]).addTo(map)
+                            .bindPopup('You are here').openPopup();
+
+                        // Use Overpass API to find nearby dentists and hospitals
+                        const query = `
+                            [out:json];
+                            (
+                                node["amenity"="dentist"](around:5000, ${lat}, ${lon});
+                                way["amenity"="dentist"](around:5000, ${lat}, ${lon});
+                                relation["amenity"="dentist"](around:5000, ${lat}, ${lon});
+                                node["amenity"="hospital"](around:5000, ${lat}, ${lon});
+                                way["amenity"="hospital"](around:5000, ${lat}, ${lon});
+                                relation["amenity"="hospital"](around:5000, ${lat}, ${lon});
+                            );
+                            out body;
+                        `;
+                        const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+
+                        fetch(overpassUrl)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.elements.length === 0) {
+                                    alert('No clinics or hospitals found near you.');
+                                    return;
+                                }
+
+                                data.elements.forEach(element => {
+                                    const lat = element.lat || (element.center && element.center.lat);
+                                    const lon = element.lon || (element.center && element.center.lon);
+                                    if (lat && lon) {
+                                        const name = element.tags ? element.tags.name : "Unnamed Clinic/Hospital";
+                                        L.marker([lat, lon]).addTo(map)
+                                            .bindPopup(`<b>${name}</b>`).openPopup();
+                                    }
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error fetching data:', error);
+                            });
+                    }, function() {
+                        alert('Unable to retrieve your location.');
+                    });
+                } else {
+                    alert('Geolocation is not supported by your browser.');
+                }
+            }
+        </script>
+    </div>
+
+    <!-- <div class="info">
+        <h2>Why Oral Hygiene Matters?</h2>
+        <p>
+            Maintaining good oral hygiene is essential for preventing tooth decay, gum disease, and other oral health issues. 
+            Regular assessments can help in early detection and treatment. 
+            Our advanced tools allow you to easily check your oral health status and take the necessary steps to improve it. 
+            Whether it's caries or plaque, we've got you covered.
+        </p>
+    </div> -->
+    
+</body>
+</html>
